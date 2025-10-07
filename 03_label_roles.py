@@ -79,7 +79,7 @@ def call_openai(model: str, instructions: str, user_input: str, timeout: float =
         model=model,
         instructions=instructions,
         input=user_input,
-        temperature=0.2,
+        temperature=0.4,
     )
     return resp.output_text.strip()
 
