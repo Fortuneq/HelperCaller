@@ -1,38 +1,43 @@
-Заметки
+# HelperCaller — AI sales-call coach
 
-OpenAO-API-Key:
-***REMOVED***
+A speech-recognition + LLM pipeline that helps sales operators run conversations with clients. It transcribes a call, labels who is speaking and suggests what the operator could say next — right now, a bit later and in alternative branches of the dialogue — given the company's goal, tone and constraints.
 
-Запуск кода:
-1 python 01_prepare_audio.py data/example1.mp3
-2 python 02_transcribe.py data/example1_16k_mono.wav --language ru --model large-v3 ОПЦИОНАЛЬНО: --threads 6
-3 python 03_label_roles.py data/example1_16k_mono.transcript.txt
-4 python 04_coach_replies.py data/example1.dialog.txt \
-  --company "ВестКолл" \
-  --goal "назначить демо на 15 минут" \
-  --tone "спокойный, экспертный, без давления" \
-  --company-info "Облачная телефония, омниканальные контакт-центры, интеграции с CRM (Bitrix24/amo/Salesforce), SLA 99.95%" \
-  --constraints "не обещать скидку без подтверждения; не обещать интеграцию за 1 день" \
-  --n-now 3 --n-soon 3 --n-later 3 --n-branch 3 --n-branch-opts 2 \
-  --max-chars 180 --tail-turns 20 --tail-chars 2500 \
+## Pipeline
+
+| Step | Script | What it does |
+|---|---|---|
+| 1 | `01_prepare_audio.py` | converts audio to 16 kHz mono WAV |
+| 2 | `02_transcribe.py` | local speech-to-text with Whisper (`large-v3` by default) |
+| 3 | `03_label_roles.py` | labels speaker roles (operator / client) with an LLM |
+| 4 | `04_coach_replies.py` | generates suggested replies for the operator |
+| — | `run_pipeline_slices.py` | runs the full pipeline on a long recording, slice by slice |
+
+## Usage
+
+```bash
+export OPENAI_API_KEY=...
+
+python 01_prepare_audio.py data/call.mp3
+python 02_transcribe.py data/call_16k_mono.wav --language ru --model large-v3
+python 03_label_roles.py data/call_16k_mono.transcript.txt
+python 04_coach_replies.py data/call.dialog.txt \
+  --company "Acme Telecom" \
+  --goal "book a 15-minute demo" \
+  --tone "calm, expert, no pressure" \
+  --company-info "Cloud telephony, contact centres, CRM integrations" \
+  --constraints "no discounts without approval" \
   --also-txt
+```
 
-full pipeline: python run_pipeline_slices.py \
-  --input data/example_for_split.mp3 \
-  --language ru \
-  --asr-model large-v3 \
-  --threads 6 \
-  --coach-model gpt-4o-mini \
-  --company "ВестКолл" \
-  --goal "привлечь клиента и продать ему наши услуги" \
-  --tone "спокойный, экспертный, проактивный, без давления" \
-  --company-info "Облачная телефония и контакт-центры; интеграции с CRM (Bitrix24/amo/Salesforce); SLA 99.95%; быстрый пилот" \
-  --constraints "не обещать скидки/сроки без согласования; не давать гарантий вне SLA" \
-  --outdir outputs/example_for_split_fullrun
+Full run on a long recording:
 
-ТЗ:
-ЛЛМ (РАГ) + Спич.рек. система помогающая оператору по продажам вести диалог с клиентом,
-(Компания по продаже интернета)
-Внутри БД есть данные о Клиенте и о предыдущих звонках
-(3 Таблицы (История звонков, Таблица данных клиентов, Информация о компании))
-Все должно происходить онлайн, средняя генерация текста должна быть около 1.5с
+```bash
+python run_pipeline_slices.py --input data/call.mp3 --language ru \
+  --asr-model large-v3 --coach-model gpt-4o-mini \
+  --company "Acme Telecom" --goal "sign the client" \
+  --outdir outputs/run1
+```
+
+## Stack
+
+Python, Whisper (local ASR), OpenAI API (`gpt-4o-mini`), ffmpeg.
