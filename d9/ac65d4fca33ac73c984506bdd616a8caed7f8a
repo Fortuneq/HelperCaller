@@ -1,0 +1,14 @@
+README.md
+  h_ef806a0650811b 1-28,30-41,43
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "d9ac65d4fca33ac73c984506bdd616a8caed7f8a",
+  "prompts": {},
+  "humans": {
+    "h_ef806a0650811b": {
+      "author": "vlad <Fortuneq@bwg-io.site>"
+    }
+  }
+}
